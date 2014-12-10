@@ -8,9 +8,12 @@ RUN add-apt-repository -y ppa:webupd8team/java
 RUN apt-get -y update
 RUN /bin/echo debconf shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install oracle-java7-installer oracle-java7-set-default
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget dnsmasq-base python2.7 vim less iputils-ping
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget dnsmasq-base python2.7 vim less iputils-ping openssh-client openssh-server
 
 # Install Cassandra
+ADD etc/cassandra.1.2.15.yaml /root/cassandra.1.2.15.yaml
+
+
 ADD bin/install-cassandra /usr/bin/install-cassandra
 RUN install-cassandra VERSION
 
@@ -19,9 +22,24 @@ ADD bin/pipework /usr/bin/
 ADD bin/start-cassandra /usr/bin/
 ADD bin/run-command /usr/bin/
 
-# Configure host names
-ADD etc/cassandra.hosts /etc/dnsmasq.d/0hosts
-ADD etc/dnsmasq.conf /etc/dnsmasq.conf
-ADD etc/resolv.conf /etc/resolv.dnsmasq.conf
 
-EXPOSE 9160 9042
+# from pokle/cassandra
+# disable for now, getting errors during image build
+# Create OpsCenter account
+#RUN mkdir -p /var/run/sshd && chmod -rx /var/run/sshd && \
+#	ssh-keygen -t rsa -N '' -f /etc/ssh/ssh_host_rsa_key && \
+#	sed -ri 's/#PermitRootLogin yes/PermitRootLogin yes/g' /etc/ssh/sshd_config && \
+#	sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
+#	sed -ri 's/#UsePAM no/UsePAM no/g' /etc/ssh/sshd_config && \
+#	useradd -m -G users,root -p $(openssl passwd -1 "opscenter") opscenter && \
+#	echo "%root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+
+# not sure that we need these anymore
+# Configure host names
+#ADD etc/cassandra.hosts /etc/dnsmasq.d/0hosts
+#ADD etc/dnsmasq.conf /etc/dnsmasq.conf
+#ADD etc/resolv.conf /etc/resolv.dnsmasq.conf
+
+EXPOSE 7199 7000 7001 9160 9042
+EXPOSE 22 8012 61621
